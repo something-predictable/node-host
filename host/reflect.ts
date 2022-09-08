@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises'
-import { basename, extname, join } from 'node:path'
+import { basename, extname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { HttpHandlerConfiguration } from '../http.js'
 import { PackageConfiguration } from './registry.js'
@@ -37,7 +37,7 @@ export interface Reflection {
 }
 
 export function resolveCpu(config: PackageJsonConfiguration, supported: CPU[]): CPU {
-    const resolved = resolve(config.cpus, supported)
+    const resolved = resolveSupported(config.cpus, supported)
     if (!resolved) {
         // resolve<T>(config, supported) actually asserts config is (T | `!${T}`)[], but that's not supported yet.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -50,7 +50,7 @@ export function resolveOS(
     config: PackageJsonConfiguration,
     supported: NodeJS.Platform[],
 ): NodeJS.Platform {
-    const resolved = resolve(config.os, supported)
+    const resolved = resolveSupported(config.os, supported)
     if (!resolved) {
         // resolve<T>(config, supported) actually asserts config is (T | `!${T}`)[], but that's not supported yet.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -59,7 +59,7 @@ export function resolveOS(
     return resolved
 }
 
-function resolve<T extends string>(
+function resolveSupported<T extends string>(
     config: (T | `!${T}`)[] | undefined,
     supported: T[],
 ): T | undefined {
@@ -76,7 +76,7 @@ export async function reflect(path: string): Promise<Reflection> {
     )
     const { getHandlers, setMeta } = (await import(
         pathToFileURL(
-            join(process.cwd(), 'node_modules/@riddance/host/host/registry.js'),
+            join(resolve(process.cwd(), path), 'node_modules/@riddance/host/host/registry.js'),
         ).toString()
     )) as {
         getHandlers: (type: string) => {
