@@ -4,7 +4,7 @@ import { Handler } from '../http.js'
 export type HttpHandler = {
     meta: Metadata | undefined
     // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
-    config: (PackageConfiguration & HandlerConfiguration) | undefined
+    config: FullConfiguration | undefined
     method: Method
     pathPattern: string
     pathRegExp: RegExp
@@ -73,6 +73,9 @@ export type PackageConfiguration = HandlerConfiguration & {
     // Placeholder for package-level configurations
 }
 
+// eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
+export type FullConfiguration = PackageConfiguration & HandlerConfiguration
+
 export type Metadata = {
     packageName: string
     fileName: string
@@ -99,7 +102,7 @@ function combineConfig(
     base: PackageConfiguration | undefined,
     override: HandlerConfiguration | undefined,
     // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
-): (PackageConfiguration & HandlerConfiguration) | undefined {
+): FullConfiguration | undefined {
     if (base === undefined) {
         return override
     } else if (override === undefined) {

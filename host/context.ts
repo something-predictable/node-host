@@ -1,7 +1,7 @@
 import { AbortSignal, Context, Environment, Json, Logger } from '../context.js'
 import { EventEmitter } from './emitter.js'
 import { makeLogger } from './logging.js'
-import { Metadata } from './registry.js'
+import { FullConfiguration, Metadata } from './registry.js'
 
 export type ClientInfo = {
     readonly operationId?: string
@@ -74,6 +74,7 @@ export function createContext(
     eventTransport: EventTransport,
     timeouts: { default: number; cap?: number },
     outerController: AbortController,
+    config?: FullConfiguration,
     meta?: Metadata,
     environment?: Environment | undefined,
     now?: (() => Date) | undefined,
@@ -85,14 +86,14 @@ export function createContext(
 } {
     const timeout =
         (timeouts.cap
-            ? Math.min(meta?.config?.timeout ?? timeouts.default, timeouts.cap)
-            : meta?.config?.timeout ?? timeouts.default) * 1000
+            ? Math.min(config?.timeout ?? timeouts.default, timeouts.cap)
+            : config?.timeout ?? timeouts.default) * 1000
     const innerController = new AbortController()
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const logTransport = loggers.length === 1 ? loggers[0]! : new LogMulticaster(loggers)
     const logger = makeLogger(
         logTransport,
-        meta?.config?.minimumLogLevel,
+        config?.minimumLogLevel,
         outerController.signal as AbortSignal,
     ).enrichReserved({
         operationId: clientInfo.operationId,
