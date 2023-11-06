@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "keywords": [
     "riddance",
@@ -35,6 +35,6 @@
     "postpublish": "riddance-sync"
   },
   "devDependencies": {
-    "@riddance/env": "0.2.9"
+    "@riddance/env": "0.4.3"
   }
 }

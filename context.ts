@@ -125,7 +125,7 @@ export function httpRequestHeaders(context: Context) {
         if (context.client.id) {
             headers['x-client-id'] = context.client.id
         }
-        if (context.client.ip || context.client.port) {
+        if (!!context.client.ip || !!context.client.port) {
             headers['x-forwarded-for'] = `${context.client.ip ?? ''}:${context.client.port ?? ''}`
         }
         if (context.client.userAgent) {

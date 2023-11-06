@@ -3,6 +3,7 @@ import { Handler } from '../http.js'
 
 export type HttpHandler = {
     meta: Metadata | undefined
+    // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
     config: (PackageConfiguration & HandlerConfiguration) | undefined
     method: Method
     pathPattern: string
@@ -17,6 +18,7 @@ type HandlerTypes = {
 const handlers: { [key: string]: unknown[] } = {}
 
 function addHandler(type: keyof HandlerTypes, handler: HttpHandler) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     ;(handlers[type] ??= []).push(handler)
 }
 
@@ -96,6 +98,7 @@ function pathToRegExp(path: string) {
 function combineConfig(
     base: PackageConfiguration | undefined,
     override: HandlerConfiguration | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
 ): (PackageConfiguration & HandlerConfiguration) | undefined {
     if (base === undefined) {
         return override

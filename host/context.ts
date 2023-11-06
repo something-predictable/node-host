@@ -46,7 +46,7 @@ export type LogTransport = {
 }
 
 class LogMulticaster implements LogTransport {
-    #transports: LogTransport[]
+    readonly #transports: LogTransport[]
     readonly publishRate: number
 
     constructor(transports: LogTransport[]) {

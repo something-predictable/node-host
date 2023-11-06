@@ -48,15 +48,16 @@ export async function executeRequest(
     }
     log.trace('Request BEGIN')
     try {
-        let parsedUrl: UrlWithParsedQuery & { pathStepAt: (index: number) => string }
-        let pathSteps: string[]
+        let parsedUrl: (UrlWithParsedQuery & { pathStepAt: (index: number) => string }) | undefined
+        let pathSteps: string[] | undefined
         const req = {
             rawUrl: options.uri,
             get url() {
                 return (parsedUrl ??= {
                     ...parse(this.rawUrl, true),
                     pathStepAt: (index: number) => {
-                        const steps = (pathSteps ??= parsedUrl.pathname?.split('/') ?? [])
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        const steps = (pathSteps ??= parsedUrl!.pathname?.split('/') ?? [])
                         const step = steps[index + 1]
                         if (!step) {
                             throw new RangeError(`Path does not have a step at index ${index}.`)

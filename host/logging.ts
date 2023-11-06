@@ -57,7 +57,7 @@ class LogBuffer {
             message,
             error: errorAsJson(error),
             ...reservedEnrichment,
-            ...((fields || customEnrichment) && {
+            ...((!!fields || !!customEnrichment) && {
                 fields: customEnrichment
                     ? fields
                         ? { ...customEnrichment, ...fields }
