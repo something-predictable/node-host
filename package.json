@@ -1,6 +1,6 @@
 {
   "name": "@riddance/host",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -35,6 +35,6 @@
     "postpublish": "riddance-sync"
   },
   "devDependencies": {
-    "@riddance/env": "0.4.3"
+    "@riddance/env": "0.4.5"
   }
 }
