@@ -1,4 +1,4 @@
-import { AbortSignal, Context, Environment, Json, Logger } from '../context.js'
+import { Context, Environment, Json, Logger } from '../context.js'
 import { EventEmitter } from './emitter.js'
 import { makeLogger } from './logging.js'
 import { FullConfiguration, Metadata } from './registry.js'
@@ -94,7 +94,7 @@ export function createContext(
     const logger = makeLogger(
         logTransport,
         config?.minimumLogLevel,
-        outerController.signal as AbortSignal,
+        outerController.signal,
     ).enrichReserved({
         operationId: clientInfo.operationId,
         client: {
@@ -110,12 +110,12 @@ export function createContext(
         logger,
         clientInfo,
         timeout,
-        outerController.signal as AbortSignal,
+        outerController.signal,
     )
     const successHandlers: (() => Promise<void> | void)[] = []
     const ctx = {
         env: environment ?? (process.env as Environment),
-        signal: innerController.signal as AbortSignal,
+        signal: innerController.signal,
         now: now ?? (() => new Date()),
         operationId: clientInfo.operationId,
         client: {

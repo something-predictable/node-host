@@ -1,10 +1,10 @@
 {
   "name": "@riddance/host",
-  "version": "0.0.14",
+  "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "keywords": [
     "riddance",
@@ -35,6 +35,6 @@
     "postpublish": "riddance-sync"
   },
   "devDependencies": {
-    "@riddance/env": "0.4.5"
+    "@riddance/env": "0.5.0"
   }
 }

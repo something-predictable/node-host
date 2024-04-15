@@ -15,22 +15,6 @@ export type Logger = {
     fatal(message: string, error?: unknown, fields?: object): void
 }
 
-export type AbortSignal = {
-    aborted: boolean
-
-    addEventListener: (
-        type: 'abort',
-        listener: (this: AbortSignal, event: unknown) => unknown,
-        options?: { capture?: boolean; once?: boolean; passive?: boolean },
-    ) => void
-
-    removeEventListener: (
-        type: 'abort',
-        listener: (this: AbortSignal, event: unknown) => unknown,
-        options?: { capture?: boolean },
-    ) => void
-}
-
 export type MutableJson =
     | null
     | boolean

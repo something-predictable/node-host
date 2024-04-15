@@ -1,4 +1,4 @@
-import { AbortSignal, Json, Logger } from '../context.js'
+import { Json, Logger } from '../context.js'
 import { BufferedEvent, ClientInfo, EventMetadata, EventTransport } from './context.js'
 
 type EmitBuffer = {

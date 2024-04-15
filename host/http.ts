@@ -1,6 +1,5 @@
-import { parse, UrlWithParsedQuery } from 'node:url'
 import { Context, measure } from '../context.js'
-import type { Json, ResponseHeaders, Result } from '../http.js'
+import type { Json, ParsedUrl, ResponseHeaders, Result } from '../http.js'
 import { ClientInfo, RootLogger } from './context.js'
 import type { HttpHandler } from './registry.js'
 
@@ -48,23 +47,57 @@ export async function executeRequest(
     }
     log.trace('Request BEGIN')
     try {
-        let parsedUrl: (UrlWithParsedQuery & { pathStepAt: (index: number) => string }) | undefined
+        let parsedUrl:
+            | (ParsedUrl & {
+                  /** @ignore */
+                  __proto__: unknown
+                  /** @ignore */
+                  toString: () => string
+              })
+            | undefined
         let pathSteps: string[] | undefined
         const req = {
             rawUrl: options.uri,
             get url() {
-                return (parsedUrl ??= {
-                    ...parse(this.rawUrl, true),
+                if (parsedUrl) {
+                    return parsedUrl
+                }
+                const url = new URL(this.rawUrl)
+                parsedUrl = {
+                    __proto__: null,
+                    hash: url.hash,
+                    host: url.host,
+                    hostname: url.hostname,
+                    href: url.href,
+                    origin: url.origin,
+                    password: url.password,
+                    pathname: url.pathname,
+                    port: url.port,
+                    protocol: url.protocol,
+                    search: url.search,
+                    get searchParams() {
+                        return url.searchParams
+                    },
+                    toJSON: () => url.toJSON(),
+                    toString: () => url.toString(),
+                    username: url.username,
                     pathStepAt: (index: number) => {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        const steps = (pathSteps ??= parsedUrl!.pathname?.split('/') ?? [])
+                        const steps = (pathSteps ??= url.pathname?.split('/') ?? [])
                         const step = steps[index + 1]
                         if (!step) {
-                            throw new RangeError(`Path does not have a step at index ${index}.`)
+                            throw Object.assign(
+                                new RangeError(`Path does not have a step at index ${index}.`),
+                                {
+                                    rawUrl: this.rawUrl,
+                                    pathName: url.pathname,
+                                    steps: steps.slice(1),
+                                },
+                            )
                         }
                         return step
                     },
-                })
+                }
+                return parsedUrl
             },
             body: requestBody(options),
             headers: options.headers ?? {},

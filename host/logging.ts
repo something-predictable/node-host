@@ -1,5 +1,5 @@
 import { performance } from 'perf_hooks'
-import { AbortSignal, Json, Logger } from '../context.js'
+import { Json, Logger } from '../context.js'
 import { LogEntry, LogLevel, LogTransport, RootLogger } from './context.js'
 
 export function makeLogger(
