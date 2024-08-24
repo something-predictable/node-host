@@ -1,5 +1,5 @@
 import { Context, Environment, Json, Logger } from '../context.js'
-import { EventEmitter } from './emitter.js'
+import { EventCollector } from './events.js'
 import { makeLogger } from './logging.js'
 import { FullConfiguration, Metadata } from './registry.js'
 
@@ -87,7 +87,7 @@ export function createContext(
     const timeout =
         (timeouts.cap
             ? Math.min(config?.timeout ?? timeouts.default, timeouts.cap)
-            : config?.timeout ?? timeouts.default) * 1000
+            : (config?.timeout ?? timeouts.default)) * 1000
     const innerController = new AbortController()
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const logTransport = loggers.length === 1 ? loggers[0]! : new LogMulticaster(loggers)
@@ -105,7 +105,7 @@ export function createContext(
         },
     })
     globalLogger = logger
-    const emitter = new EventEmitter(
+    const emitter = new EventCollector(
         eventTransport,
         logger,
         clientInfo,
@@ -131,8 +131,9 @@ export function createContext(
                   revision: meta.revision,
               }
             : undefined,
-        emit: (topic: string, type: string, subject: string, data?: Json, messageId?: string) =>
-            emitter.emit({ topic, type, subject, id: messageId }, data),
+        emit: (topic: string, type: string, subject: string, data?: Json, messageId?: string) => {
+            emitter.emit({ topic, type, subject, id: messageId }, data)
+        },
         eventBarrier: () => emitter.flush(),
         onSuccess: (fn: () => Promise<void> | void) => successHandlers.push(fn),
     }
@@ -147,7 +148,7 @@ export function createContext(
     const flushHandle = setTimeout(() => {
         logger.error('Aborting flush.', undefined, undefined)
         outerController.abort()
-    }, timeout + 15000)
+    }, timeout + 15_000)
     return {
         log: logger,
         context: ctx,

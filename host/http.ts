@@ -64,6 +64,7 @@ export async function executeRequest(
                 }
                 const url = new URL(this.rawUrl)
                 parsedUrl = {
+                    // eslint-disable-next-line unicorn/no-null
                     __proto__: null,
                     hash: url.hash,
                     host: url.host,
@@ -82,7 +83,7 @@ export async function executeRequest(
                     toString: () => url.toString(),
                     username: url.username,
                     pathStepAt: (index: number) => {
-                        const steps = (pathSteps ??= url.pathname?.split('/') ?? [])
+                        const steps = (pathSteps ??= url.pathname.split('/'))
                         const step = steps[index + 1]
                         if (!step) {
                             throw Object.assign(

@@ -1,4 +1,4 @@
-import { performance } from 'perf_hooks'
+import { performance } from 'node:perf_hooks'
 import { highPrecisionISODate } from './host/logging.js'
 
 export type Environment = {
@@ -133,7 +133,7 @@ export async function measure<T>(
         logger.trace(`Measurement of ${name} time`, undefined, {
             start: highPrecisionISODate(start),
             end: highPrecisionISODate(end),
-            duration: (Math.round(end * 10000) - Math.round(start * 10000)) / 10000,
+            duration: (Math.round(end * 10_000) - Math.round(start * 10_000)) / 10_000,
             ...fields,
         })
     }

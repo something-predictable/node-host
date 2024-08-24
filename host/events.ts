@@ -5,7 +5,7 @@ type EmitBuffer = {
     [topic: string]: BufferedEvent[]
 }
 
-export class EventEmitter {
+export class EventCollector {
     readonly #transport: EventTransport
     readonly #logger: Logger
     readonly #ids: ClientInfo
@@ -26,14 +26,14 @@ export class EventEmitter {
         this.#transport = transport
         this.#logger = logger
         this.#ids = ids
-        this.#deadline = new Date().getTime() + timeout
+        this.#deadline = Date.now() + timeout
         this.#buffered = 0
         this.#signal = signal
     }
 
     emit(meta: EventMetadata, data?: Json): void {
         const eventTime = new Date()
-        const timeLeft = this.#deadline - new Date().getTime()
+        const timeLeft = this.#deadline - Date.now()
         if (this.#buffered / this.#transport.publishRate > timeLeft) {
             throw new Error('Event overflow.')
         }
@@ -42,14 +42,14 @@ export class EventEmitter {
                 ? { meta, ids: this.#ids, eventTime }
                 : { meta, ids: this.#ids, eventTime, json: JSON.stringify(data) }
         const events = this.#emitted[meta.topic]
-        if (!events) {
-            this.#emitted[meta.topic] = [event]
-        } else {
+        if (events) {
             events.push(event)
-            if (events.length > 64 || this.#size > 64000) {
+            if (events.length > 64 || this.#size > 64_000) {
                 // eslint-disable-next-line no-void
                 void this.flush()
             }
+        } else {
+            this.#emitted[meta.topic] = [event]
         }
         ++this.#buffered
         this.#size += event.json?.length ?? 0

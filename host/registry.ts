@@ -3,7 +3,6 @@ import { Handler } from '../http.js'
 
 export type HttpHandler = {
     meta: Metadata | undefined
-    // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
     config: FullConfiguration | undefined
     method: Method
     pathPattern: string
@@ -18,7 +17,6 @@ type HandlerTypes = {
 const handlers: { [key: string]: unknown[] } = {}
 
 function addHandler(type: keyof HandlerTypes, handler: HttpHandler) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     ;(handlers[type] ??= []).push(handler)
 }
 
@@ -68,7 +66,6 @@ export function setMeta(
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export type PackageConfiguration = HandlerConfiguration & {
     // Placeholder for package-level configurations
 }
@@ -91,7 +88,7 @@ function pathToRegExp(path: string) {
     return new RegExp(
         (
             '^' +
-            path.replace(/[/\\^$+?.()|[\]{}]/gu, '\\$&').replaceAll('*', '[^/\\?]+') +
+            path.replaceAll(/[/\\^$+?.()|[\]{}]/gu, '\\$&').replaceAll('*', '[^/\\?]+') +
             '(\\?.*)?$'
         ).replace('[^/\\?]+[^/\\?]+(\\?.*)?$', ''),
         'u',
@@ -101,7 +98,6 @@ function pathToRegExp(path: string) {
 function combineConfig(
     base: PackageConfiguration | undefined,
     override: HandlerConfiguration | undefined,
-    // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
 ): FullConfiguration | undefined {
     if (base === undefined) {
         return override

@@ -1,4 +1,4 @@
-import { performance } from 'perf_hooks'
+import { performance } from 'node:perf_hooks'
 import { Json, Logger } from '../context.js'
 import { LogEntry, LogLevel, LogTransport, RootLogger } from './context.js'
 
@@ -16,13 +16,13 @@ export function makeLogger(
     )
 }
 
-const performanceTimeOrigin100ns = Math.round(performance.timeOrigin * 10000)
+const performanceTimeOrigin100ns = Math.round(performance.timeOrigin * 10_000)
 
 export function highPrecisionISODate(performanceNow: number) {
-    const now100ns = performanceTimeOrigin100ns + Math.round(performanceNow * 10000)
+    const now100ns = performanceTimeOrigin100ns + Math.round(performanceNow * 10_000)
     return (
-        new Date(now100ns / 10000).toISOString().substring(0, 20) +
-        (now100ns % 10000000).toString().padStart(7, '0') +
+        new Date(now100ns / 10_000).toISOString().slice(0, 20) +
+        (now100ns % 10_000_000).toString().padStart(7, '0') +
         'Z'
     )
 }
@@ -57,13 +57,7 @@ class LogBuffer {
             message,
             error: errorAsJson(error),
             ...reservedEnrichment,
-            ...((!!fields || !!customEnrichment) && {
-                fields: customEnrichment
-                    ? fields
-                        ? { ...customEnrichment, ...fields }
-                        : customEnrichment
-                    : fields,
-            }),
+            ...extra(fields, customEnrichment),
         })
         this.#entries.push({
             timestamp: offset,
@@ -95,7 +89,7 @@ class LogBuffer {
                 }
             })
         } else {
-            if (numericLogLevel < 2 || this.#entries.length > 8 || this.#size > 64000) {
+            if (numericLogLevel < 2 || this.#entries.length > 8 || this.#size > 64_000) {
                 // eslint-disable-next-line no-void
                 void this.flush()
             } else {
@@ -133,6 +127,19 @@ class LogBuffer {
     }
 }
 
+function extra(fields: object | undefined, customEnrichment: object | undefined) {
+    if (!fields) {
+        if (!customEnrichment) {
+            return undefined
+        }
+        return customEnrichment
+    }
+    if (!customEnrichment) {
+        return fields
+    }
+    return { ...customEnrichment, ...fields }
+}
+
 class EnrichingLogger implements Logger {
     readonly #buffer: LogBuffer
     readonly #reservedEnrichment?: object
@@ -153,7 +160,7 @@ class EnrichingLogger implements Logger {
 
     enrich(fields: object): Logger {
         return new EnrichingLogger(this.#buffer, this.#level, this.#reservedEnrichment, {
-            ...(this.#customEnrichment ?? {}),
+            ...this.#customEnrichment,
             ...fields,
         })
     }
@@ -167,7 +174,7 @@ class EnrichingLogger implements Logger {
             this.#buffer,
             this.#level,
             {
-                ...(this.#reservedEnrichment ?? {}),
+                ...this.#reservedEnrichment,
                 ...fields,
             },
             this.#customEnrichment,
