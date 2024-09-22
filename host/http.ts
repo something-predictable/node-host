@@ -198,11 +198,11 @@ function resultToResponse(result: Result, withLogBody: boolean): Response & { lo
 }
 
 function withoutRequestBody(options: RequestOptions & { method: string }) {
-    if (hasJsonBody(options)) {
+    if ('json' in options) {
         const { json, ...bodyless } = options
         return bodyless
     }
-    if (hasStringBody(options)) {
+    if ('body' in options) {
         const { body, ...bodyless } = options
         return bodyless
     }
@@ -210,21 +210,13 @@ function withoutRequestBody(options: RequestOptions & { method: string }) {
 }
 
 function requestBody(options: RequestOptions): Json | string | undefined {
-    if (hasJsonBody(options)) {
+    if ('json' in options) {
         return options.json
     }
-    if (hasStringBody(options)) {
+    if ('body' in options) {
         return options.body
     }
     return undefined
-}
-
-function hasJsonBody(options: RequestOptions): options is JsonRequestOptions {
-    return (options as { json?: unknown }).json !== undefined
-}
-
-function hasStringBody(options: RequestOptions): options is StringRequestOptions {
-    return (options as { body?: unknown }).body !== undefined
 }
 
 function withContentType(headers: ResponseHeaders | undefined, contentType: string) {
