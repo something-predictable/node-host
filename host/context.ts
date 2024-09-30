@@ -76,8 +76,8 @@ export function createContext(
     outerController: AbortController,
     config?: FullConfiguration,
     meta?: Metadata,
-    environment?: Environment | undefined,
-    now?: (() => Date) | undefined,
+    environment?: Environment,
+    now?: () => Date,
 ): {
     log: RootLogger
     context: Omit<Context, 'log'>
