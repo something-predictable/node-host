@@ -6,7 +6,6 @@ export type HttpHandler = {
     config: FullConfiguration | undefined
     method: Method
     pathPattern: string
-    pathRegExp: RegExp
     entry: Handler
 }
 
@@ -84,7 +83,7 @@ function getMetadata() {
     return metadata
 }
 
-function pathToRegExp(path: string) {
+export function pathToRegExp(path: string) {
     return new RegExp(
         (
             '^' +
@@ -119,7 +118,6 @@ function httpHost(
         config: combineConfig(meta?.config, cfg),
         method,
         pathPattern: path,
-        pathRegExp: pathToRegExp(path),
         entry,
     })
 }
