@@ -1,5 +1,5 @@
 import { Context, HandlerConfiguration, Json } from './context.js'
-import { registerHttpHandler } from './host/registry.js'
+import { registerHttpHandler } from './host/http-registry.js'
 
 export * from './context.js'
 

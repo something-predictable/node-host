@@ -1,8 +1,10 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { basename, extname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { HttpHandlerConfiguration } from '../http.js'
-import { PackageConfiguration } from './registry.js'
+import type { HttpHandlerConfiguration } from '../http.js'
+import type { TimerHandlerConfiguration } from '../timer.js'
+import type { PackageConfiguration } from './meta.js'
+import type { HandlersGetter } from './registry.js'
 
 type CPU =
     | 'arm'
@@ -31,8 +33,12 @@ export type Reflection = {
         name: string
         method: string
         pathPattern: string
-        pathRegExp: RegExp
         config: HttpHandlerConfiguration & PackageJsonConfiguration
+    }[]
+    timers: {
+        name: string
+        schedule: string
+        config: TimerHandlerConfiguration & PackageJsonConfiguration
     }[]
 }
 
@@ -78,14 +84,7 @@ export async function reflect(path: string): Promise<Reflection> {
     const { getHandlers, setMeta } = (await import(
         pathToFileURL(join(absolutePath, 'node_modules/@riddance/host/host/registry.js')).toString()
     )) as {
-        getHandlers: (type: string) => {
-            name: string
-            meta?: { fileName: string }
-            config: HttpHandlerConfiguration
-            method: string
-            pathPattern: string
-            pathRegExp: RegExp
-        }[]
+        getHandlers: HandlersGetter
         setMeta: (
             packageName: string,
             fileName: string,
@@ -112,7 +111,16 @@ export async function reflect(path: string): Promise<Reflection> {
             name: h.meta?.fileName ?? '',
             method: h.method,
             pathPattern: h.pathPattern,
-            pathRegExp: h.pathRegExp,
+        })),
+        timers: getHandlers('timer').map(h => ({
+            config: {
+                ...h.config,
+                cpus: packageJson.cpu,
+                os: packageJson.os,
+                nodeVersion: packageJson.engines?.node,
+            },
+            name: h.meta?.fileName ?? '',
+            schedule: h.schedule,
         })),
     }
 }

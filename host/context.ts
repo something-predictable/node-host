@@ -1,7 +1,7 @@
 import { Context, Environment, Json, Logger } from '../context.js'
 import { EventCollector } from './events.js'
 import { makeLogger } from './logging.js'
-import { FullConfiguration, Metadata } from './registry.js'
+import type { FullConfiguration, Metadata } from './meta.js'
 
 export type ClientInfo = {
     readonly operationId?: string

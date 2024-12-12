@@ -1,7 +1,7 @@
 import { Context, measure } from '../context.js'
 import type { Json, ParsedUrl, ResponseHeaders, Result } from '../http.js'
 import { ClientInfo, RootLogger } from './context.js'
-import type { HttpHandler } from './registry.js'
+import type { HttpHandler } from './http-registry.js'
 
 export type Response = {
     headers: { readonly [key: string]: string }
