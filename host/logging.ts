@@ -278,11 +278,12 @@ function errorAsJson(error: unknown): Json | undefined {
     }
     if (error instanceof Object) {
         return {
+            // eslint-disable-next-line @typescript-eslint/no-misused-spread
             ...error,
         } as Json
     }
     return {
-        message: (error as object | undefined)?.toString(),
+        message: (error as unknown)?.toString(),
         name: typeof error,
     } as Json
 }

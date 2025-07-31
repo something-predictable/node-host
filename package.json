@@ -39,6 +39,6 @@
     "postpublish": "riddance-sync"
   },
   "devDependencies": {
-    "@riddance/env": "0.6.4"
+    "@riddance/env": "0.8.1"
   }
 }

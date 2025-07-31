@@ -225,9 +225,7 @@ function withContentType(headers: ResponseHeaders | undefined, contentType: stri
             'content-type': contentType,
         }
     }
-    if (!headers['content-type']) {
-        headers['content-type'] = contentType
-    }
+    headers['content-type'] ??= contentType
     return headers
 }
 
