@@ -261,6 +261,7 @@ export function clientFromHeaders(
     if (!headers) {
         return {}
     }
+    const address = headers['x-forwarded-for']?.split(':')
     return {
         operationId: headers['x-request-id'] ?? headers['request-id'],
         clientId:
@@ -268,7 +269,8 @@ export function clientFromHeaders(
             headers['x-installation-id'] ??
             headers['client-id'] ??
             headers['installation-id'],
-        clientIp: headers['x-forwarded-for'],
+        clientIp: address?.[0],
+        clientPort: Number(address?.[1]) || undefined,
         userAgent: headers['x-forwarded-for-user-agent'] ?? headers['user-agent'],
     }
 }
