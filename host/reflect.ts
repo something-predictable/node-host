@@ -1,6 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { basename, extname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import type { HandlerConfiguration } from '../context.js'
 import type { HttpHandlerConfiguration } from '../http.js'
 import type { TimerHandlerConfiguration } from '../timer.js'
 import type { PackageConfiguration } from './meta.js'
@@ -39,6 +40,12 @@ export type Reflection = {
         name: string
         schedule: string
         config: TimerHandlerConfiguration & PackageJsonConfiguration
+    }[]
+    events: {
+        name: string
+        topic: string
+        type: string
+        config: HandlerConfiguration & PackageJsonConfiguration
     }[]
 }
 
@@ -121,6 +128,17 @@ export async function reflect(path: string): Promise<Reflection> {
             },
             name: h.meta?.fileName ?? '',
             schedule: h.schedule,
+        })),
+        events: getHandlers('event').map(h => ({
+            config: {
+                ...h.config,
+                cpus: packageJson.cpu,
+                os: packageJson.os,
+                nodeVersion: packageJson.engines?.node,
+            },
+            name: h.meta?.fileName ?? '',
+            topic: h.topic,
+            type: h.type,
         })),
     }
 }

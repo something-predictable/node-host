@@ -1,3 +1,4 @@
+import type { EventHandler } from './event-registry.js'
 import type { HttpHandler } from './http-registry.js'
 import type { TimerHandler } from './timer-registry.js'
 
@@ -6,6 +7,7 @@ export * from './meta.js'
 type HandlerTypes = {
     http: HttpHandler
     timer: TimerHandler
+    event: EventHandler
 }
 
 const handlers: { [Type in keyof HandlerTypes]?: HandlerTypes[Type][] } = {}

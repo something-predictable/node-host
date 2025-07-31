@@ -23,6 +23,7 @@
     "./lib/context": "./context.js",
     "./lib/http": "./http.js",
     "./lib/timer": "./timer.js",
+    "./lib/event": "./event.js",
     "./registry": "./host/registry.js",
     "./reflect": "./host/reflect.js",
     "./logging": "./host/logging.js",
@@ -30,7 +31,9 @@
     "./http": "./host/http.js",
     "./http-registry": "./host/http-registry.js",
     "./timer": "./host/timer.js",
-    "./timer-registry": "./host/timer-registry.js"
+    "./timer-registry": "./host/timer-registry.js",
+    "./event": "./host/event.js",
+    "./event-registry": "./host/event-registry.js"
   },
   "scripts": {
     "start": "riddance-watch",

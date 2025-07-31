@@ -1,5 +1,4 @@
 import { Context, Environment, Json, Logger } from '../context.js'
-import { EventCollector } from './events.js'
 import { makeLogger } from './logging.js'
 import type { FullConfiguration, Metadata } from './meta.js'
 
@@ -11,23 +10,19 @@ export type ClientInfo = {
     readonly userAgent?: string
 }
 
-export type EventMetadata = {
-    topic: string
-    type: string
-    subject: string
-    id?: string
-}
-
-export type BufferedEvent = {
-    eventTime: Date
-    meta: Omit<EventMetadata, 'topic'>
-    ids: ClientInfo
-    json?: string
-}
-
 export type EventTransport = {
-    readonly publishRate: number
-    sendEvents(topic: string, events: BufferedEvent[], signal: AbortSignal): Promise<void>
+    sendEvent(
+        topic: string,
+        type: string,
+        subject: string,
+        data:
+            | {
+                  readonly [key: string]: Json
+              }
+            | undefined,
+        messageId: string | undefined,
+        signal: AbortSignal,
+    ): Promise<void>
 }
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'fatal'
@@ -105,13 +100,6 @@ export function createContext(
         },
     })
     globalLogger = logger
-    const emitter = new EventCollector(
-        eventTransport,
-        logger,
-        clientInfo,
-        timeout,
-        outerController.signal,
-    )
     const successHandlers: (() => Promise<void> | void)[] = []
     const ctx = {
         env: environment ?? (process.env as Environment),
@@ -131,10 +119,16 @@ export function createContext(
                   revision: meta.revision,
               }
             : undefined,
-        emit: (topic: string, type: string, subject: string, data?: Json, messageId?: string) => {
-            emitter.emit({ topic, type, subject, id: messageId }, data)
-        },
-        eventBarrier: () => emitter.flush(),
+        emit: (
+            topic: string,
+            type: string,
+            subject: string,
+            data?: {
+                readonly [key: string]: Json
+            },
+            messageId?: string,
+        ) =>
+            eventTransport.sendEvent(topic, type, subject, data, messageId, outerController.signal),
         onSuccess: (fn: () => Promise<void> | void) => successHandlers.push(fn),
     }
     const timeoutHandle = setTimeout(() => {
@@ -142,8 +136,6 @@ export function createContext(
         innerController.abort()
         // eslint-disable-next-line no-void
         void logger.flush()
-        // eslint-disable-next-line no-void
-        void emitter.flush()
     }, timeout)
     const flushHandle = setTimeout(() => {
         logger.error('Aborting flush.', undefined, undefined)
@@ -155,7 +147,6 @@ export function createContext(
         success: () => Promise.all(successHandlers.map(fn => fn())),
         flush: async () => {
             clearTimeout(timeoutHandle)
-            await emitter.flush()
             await logger.flush()
             clearTimeout(flushHandle)
         },

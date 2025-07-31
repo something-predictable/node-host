@@ -92,8 +92,13 @@ export type Context = {
         readonly revision?: string
     }
 
-    emit(topic: string, type: string, subject: string, data?: Json, messageId?: string): void
-    eventBarrier(): Promise<void>
+    emit(
+        topic: string,
+        type: string,
+        subject: string,
+        data?: Json,
+        messageId?: string,
+    ): Promise<void>
 
     onSuccess(fn: () => Promise<void> | void): void
 }
