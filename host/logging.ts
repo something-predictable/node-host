@@ -51,22 +51,18 @@ class LogBuffer {
         customEnrichment: object | undefined,
     ) {
         const offset = performance.now()
-        const json = JSON.stringify({
-            timestamp: highPrecisionISODate(offset),
-            level,
-            message,
-            error: errorAsJson(error),
-            ...reservedEnrichment,
-            ...extra(fields, customEnrichment),
-        })
-        this.#entries.push({
-            timestamp: offset,
+        const entry = this.#toEntry(
+            highPrecisionISODate(offset),
+            offset,
             level,
             message,
             error,
-            json,
-        })
-        this.#size += json.length
+            fields,
+            reservedEnrichment,
+            customEnrichment,
+        )
+        this.#entries.push(entry)
+        this.#size += entry.json.length
 
         if (this.#asyncTransport === false) {
             // eslint-disable-next-line no-void
@@ -123,6 +119,58 @@ class LogBuffer {
             )
         } else {
             this.#flusher = this.#transport.sendEntries(entries, this.#signal)
+        }
+    }
+
+    #toEntry(
+        timestamp: string,
+        offset: number,
+        level: LogLevel,
+        message: string,
+        error: unknown,
+        fields: object | undefined,
+        reservedEnrichment: object | undefined,
+        customEnrichment: object | undefined,
+    ) {
+        try {
+            return {
+                timestamp: offset,
+                level,
+                message,
+                error,
+                json: JSON.stringify({
+                    timestamp,
+                    level,
+                    message,
+                    error: errorAsJson(error, 0),
+                    ...reservedEnrichment,
+                    ...extra(fields, customEnrichment),
+                }),
+            }
+        } catch (e) {
+            this.collect(
+                'warning',
+                2,
+                'Error serializing error.',
+                e,
+                undefined,
+                reservedEnrichment,
+                customEnrichment,
+            )
+            return {
+                timestamp: offset,
+                level,
+                message,
+                error,
+                json: JSON.stringify({
+                    timestamp,
+                    level,
+                    message,
+                    error: safeErrorAsJson(error, 0),
+                    ...reservedEnrichment,
+                    ...extra(fields, customEnrichment),
+                }),
+            }
         }
     }
 }
@@ -268,18 +316,51 @@ function errorAsJson(error: unknown): Json | undefined {
     if (error === undefined || error === null) {
         return undefined
     }
+    if (depth > 5) {
+        return undefined
+    }
     if (error instanceof Error) {
         return {
             message: error.message,
             name: error.name,
             stack: error.stack,
-            cause: errorAsJson(error.cause),
+            cause: errorAsJson(error.cause, depth + 1),
             ...(error as unknown as { [key: string]: unknown }),
         } as Json
     }
     if (error instanceof Object) {
         if (Array.isArray(error)) {
             return error.map(errorAsJson) as Json
+        }
+        return {
+            // eslint-disable-next-line @typescript-eslint/no-misused-spread
+            ...error,
+        } as Json
+    }
+    return {
+        message: (error as unknown)?.toString(),
+        name: typeof error,
+    } as Json
+}
+
+function safeErrorAsJson(error: unknown): Json | undefined {
+    if (error === undefined || error === null) {
+        return undefined
+    }
+    if (depth > 5) {
+        return undefined
+    }
+    if (error instanceof Error) {
+        return {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+            cause: safeErrorAsJson(error.cause, depth + 1),
+        } as Json
+    }
+    if (error instanceof Object) {
+        if (Array.isArray(error)) {
+            return error.map(safeErrorAsJson) as Json
         }
         return {
             // eslint-disable-next-line @typescript-eslint/no-misused-spread
