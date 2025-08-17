@@ -31,7 +31,7 @@ class LogBuffer {
     readonly #transport: LogTransport
     #entries: LogEntry[] = []
     #size = 0
-    #flusher?: Promise<void> | undefined
+    #flusher?: Promise<void> | undefined | void
     readonly #signal: AbortSignal
     #asyncTransport: boolean | undefined
     #timeout: NodeJS.Timeout | undefined
@@ -273,10 +273,14 @@ function errorAsJson(error: unknown): Json | undefined {
             message: error.message,
             name: error.name,
             stack: error.stack,
+            cause: errorAsJson(error.cause),
             ...(error as unknown as { [key: string]: unknown }),
         } as Json
     }
     if (error instanceof Object) {
+        if (Array.isArray(error)) {
+            return error.map(errorAsJson) as Json
+        }
         return {
             // eslint-disable-next-line @typescript-eslint/no-misused-spread
             ...error,

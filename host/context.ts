@@ -37,7 +37,7 @@ export type LogEntry = {
 
 export type LogTransport = {
     readonly publishRate?: number
-    sendEntries(entries: LogEntry[], signal: AbortSignal): Promise<void> | undefined
+    sendEntries(entries: LogEntry[], signal: AbortSignal): Promise<void> | undefined | void
 }
 
 class LogMulticaster implements LogTransport {
