@@ -3,6 +3,67 @@ import type { LogEntry, LogTransport } from '../host/context.js'
 import { makeLogger } from '../host/logging.js'
 
 describe('logging', () => {
+    it('handles lists', async () => {
+        const transport = new TestTransport()
+        const logger = makeLogger(transport, undefined, new AbortController().signal)
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
+            throw 'error'
+        } catch (e) {
+            logger.error('A string', e)
+        }
+        try {
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
+            throw [new Error('One error'), new Error('Other error')]
+        } catch (e) {
+            logger.error('A list', e)
+        }
+        try {
+            await Promise.any([
+                Promise.reject(new Error('One error')),
+                Promise.reject(new Error('Other error')),
+            ])
+        } catch (e) {
+            logger.error('An aggregate', e)
+        }
+
+        await logger.flush()
+
+        assert.deepStrictEqual(
+            transport.entries
+                .filter(e => e.message === 'A string')
+                .map(e => JSON.parse(e.json)?.error),
+            [{ message: 'error', name: 'string' }],
+        )
+        assert.deepStrictEqual(
+            transport.entries
+                .filter(e => e.message === 'A list')
+                .map(e => withoutStacktrace(JSON.parse(e.json)?.error)),
+            [
+                [
+                    { message: 'One error', name: 'Error' },
+                    { message: 'Other error', name: 'Error' },
+                ],
+            ],
+        )
+        assert.deepStrictEqual(
+            transport.entries
+                .filter(e => e.message === 'An aggregate')
+                .map(e => withoutStacktrace(JSON.parse(e.json)?.error)),
+            [
+                {
+                    message: 'All promises were rejected',
+                    name: 'AggregateError',
+                    errors: [
+                        { message: 'One error', name: 'Error' },
+                        { message: 'Other error', name: 'Error' },
+                    ],
+                },
+            ],
+        )
+    })
+
     it('includes cause', async () => {
         const transport = new TestTransport()
         const logger = makeLogger(transport, undefined, new AbortController().signal)
@@ -48,6 +109,20 @@ describe('logging', () => {
         )
     })
 })
+
+function withoutStacktrace(error: any): any {
+    if (!error) {
+        return error
+    }
+    if (Array.isArray(error)) {
+        return error.map(withoutStacktrace)
+    }
+    if (error.errors) {
+        error.errors = withoutStacktrace(error.errors)
+    }
+    delete error.stack
+    return error
+}
 
 class TestTransport implements LogTransport {
     readonly entries: LogEntry[] = []

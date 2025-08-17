@@ -312,7 +312,7 @@ class EnrichingLogger implements Logger {
     }
 }
 
-function errorAsJson(error: unknown): Json | undefined {
+function errorAsJson(error: unknown, depth: number): Json | undefined {
     if (error === undefined || error === null) {
         return undefined
     }
@@ -325,6 +325,7 @@ function errorAsJson(error: unknown): Json | undefined {
             name: error.name,
             stack: error.stack,
             cause: errorAsJson(error.cause, depth + 1),
+            errors: errorAsJson((error as { errors?: unknown }).errors, depth + 1),
             ...(error as unknown as { [key: string]: unknown }),
         } as Json
     }
@@ -343,7 +344,7 @@ function errorAsJson(error: unknown): Json | undefined {
     } as Json
 }
 
-function safeErrorAsJson(error: unknown): Json | undefined {
+function safeErrorAsJson(error: unknown, depth: number): Json | undefined {
     if (error === undefined || error === null) {
         return undefined
     }
@@ -356,6 +357,7 @@ function safeErrorAsJson(error: unknown): Json | undefined {
             name: error.name,
             stack: error.stack,
             cause: safeErrorAsJson(error.cause, depth + 1),
+            errors: safeErrorAsJson((error as { errors?: unknown }).errors, depth + 1),
         } as Json
     }
     if (error instanceof Object) {
