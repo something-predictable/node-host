@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url'
 import type { HandlerConfiguration } from '../context.js'
 import type { HttpHandlerConfiguration } from '../http.js'
 import type { TimerHandlerConfiguration } from '../timer.js'
+import { getHash } from './git.js'
 import type { PackageConfiguration } from './meta.js'
 import type { HandlersGetter } from './registry.js'
 
@@ -30,6 +31,7 @@ export type PackageJsonConfiguration = {
 
 export type Reflection = {
     name: string
+    revision: string | undefined
     http: {
         name: string
         method: string
@@ -83,11 +85,13 @@ function resolveSupported<T extends string>(
 }
 
 export async function reflect(path: string): Promise<Reflection> {
-    const packageJson = await readConfig()
     const absolutePath = resolve(process.cwd(), path)
-    const files = (await readdir(absolutePath)).filter(
-        file => extname(file) === '.ts' && !file.endsWith('.d.ts'),
-    )
+    const [packageJson, allFiles, revision] = await Promise.all([
+        readConfig(absolutePath),
+        readdir(absolutePath),
+        getHash(absolutePath),
+    ])
+    const files = allFiles.filter(file => extname(file) === '.ts' && !file.endsWith('.d.ts'))
     const { getHandlers, setMeta } = (await import(
         pathToFileURL(join(absolutePath, 'node_modules/@riddance/host/host/registry.js')).toString()
     )) as {
@@ -102,12 +106,13 @@ export async function reflect(path: string): Promise<Reflection> {
 
     for (const file of files) {
         const base = basename(file, '.ts')
-        setMeta(packageJson.name, base, undefined, packageJson.config)
+        setMeta(packageJson.name, base, revision, packageJson.config)
         await import(pathToFileURL(join(absolutePath, base + '.js')).toString())
     }
 
     return {
         name: packageJson.name,
+        revision,
         http: getHandlers('http').map(h => ({
             config: {
                 ...h.config,
@@ -143,8 +148,8 @@ export async function reflect(path: string): Promise<Reflection> {
     }
 }
 
-async function readConfig() {
-    const packageJson = JSON.parse(await readFile('package.json', 'utf-8')) as {
+async function readConfig(path: string) {
+    const packageJson = JSON.parse(await readFile(join(path, 'package.json'), 'utf-8')) as {
         name: string
         engines?: { [engine: string]: string }
         cpu?: CpuConfig[]
