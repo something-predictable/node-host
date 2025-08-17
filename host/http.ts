@@ -1,4 +1,5 @@
 import { hash } from 'node:crypto'
+import { brotliCompress } from 'node:zlib'
 import { Context, measure } from '../context.js'
 import type { Json, ParsedUrl, ResponseHeaders, Result } from '../http.js'
 import { ClientInfo, RootLogger } from './context.js'
@@ -131,7 +132,7 @@ export async function executeRequest(
         } else {
             log.warn('Request END')
         }
-        return eTagged(response, req.headers['if-none-match'])
+        return await compressed(req.headers, eTagged(req.headers, response))
     } catch (e) {
         try {
             const response = errorToResponse(e)
@@ -277,17 +278,50 @@ export function clientFromHeaders(
 }
 
 function eTagged(
+    requestHeaders: { [key: string]: string },
     response: Response & { headers: { [key: string]: string } },
-    cachedEtag: string | undefined,
 ): Response {
     if (response.headers.etag || !response.body) {
         return response
     }
     const etag = hash('sha1', response.body, 'base64').slice(0, -1)
     response.headers.etag = etag
-    if (cachedEtag === etag) {
+    if (requestHeaders['if-none-match'] === etag) {
         response.status = 304
         delete response.body
     }
     return response
+}
+
+async function compressed(
+    requestHeaders: { [key: string]: string },
+    response: Response & { headers: { [key: string]: string } },
+): Promise<Response> {
+    if (!response.body || response.body.length < 32_768 || response.headers['content-encoding']) {
+        return response
+    }
+    const encodings = requestHeaders['accept-encoding']?.split(',').map(e => e.trim())
+    if (!encodings?.includes('br')) {
+        return response
+    }
+    return {
+        status: response.status,
+        headers: {
+            'content-encoding': 'br',
+            ...response.headers,
+        },
+        body: await compress(response.body),
+    }
+}
+
+function compress(body: string | Buffer) {
+    return new Promise<Buffer>((resolve, reject) => {
+        brotliCompress(body, {}, (error, result) => {
+            if (error) {
+                reject(error)
+                return
+            }
+            resolve(result)
+        })
+    })
 }

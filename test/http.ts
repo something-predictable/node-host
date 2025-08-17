@@ -84,6 +84,23 @@ describe('http', () => {
             body: '{"message":"new response body"}',
         })
     })
+
+    it('compresses large responses', async () => {
+        const response = await executeHandler(
+            () => {
+                return {
+                    body: {
+                        message: Array.from({ length: 100_000 }).map(_ => 'hello'),
+                    },
+                }
+            },
+            {
+                'accept-encoding': 'gzip, deflate, br, zstd',
+            },
+        )
+        assert.deepStrictEqual(response.headers['content-encoding'], 'br')
+        assert.ok((response.body?.length ?? Number.NaN) < 10_000)
+    })
 })
 
 async function executeHandler(
