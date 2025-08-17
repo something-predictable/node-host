@@ -1,3 +1,4 @@
+import { hash } from 'node:crypto'
 import { Context, measure } from '../context.js'
 import type { Json, ParsedUrl, ResponseHeaders, Result } from '../http.js'
 import { ClientInfo, RootLogger } from './context.js'
@@ -130,7 +131,7 @@ export async function executeRequest(
         } else {
             log.warn('Request END')
         }
-        return response
+        return eTagged(response, req.headers['if-none-match'])
     } catch (e) {
         try {
             const response = errorToResponse(e)
@@ -273,4 +274,20 @@ export function clientFromHeaders(
         clientPort: Number(address?.[1]) || undefined,
         userAgent: headers['x-forwarded-for-user-agent'] ?? headers['user-agent'],
     }
+}
+
+function eTagged(
+    response: Response & { headers: { [key: string]: string } },
+    cachedEtag: string | undefined,
+): Response {
+    if (response.headers.etag || !response.body) {
+        return response
+    }
+    const etag = hash('sha1', response.body, 'base64').slice(0, -1)
+    response.headers.etag = etag
+    if (cachedEtag === etag) {
+        response.status = 304
+        delete response.body
+    }
+    return response
 }
