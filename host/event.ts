@@ -19,21 +19,21 @@ export async function handle(
     },
     success: () => Promise<unknown>,
 ): Promise<void> {
-    log = log.enrichReserved({ meta: context.meta, event: options })
-    log.trace('Event BEGIN')
+    const enrichedLog = log.enrichReserved({ meta: context.meta, event: options })
+    enrichedLog.trace('Event BEGIN')
     try {
-        await measure(log, 'execution', () =>
+        await measure(log.enrichReserved({ meta: context.meta }), 'execution', () =>
             handler.entry(
-                { ...context, log },
+                { ...context, log: enrichedLog },
                 options.subject,
                 options.event,
                 options.timestamp,
                 options.messageId ?? randomUUID().replaceAll('-', ''),
             ),
         )
-        log.debug('Event END')
+        enrichedLog.debug('Event END')
         await success()
     } catch (e) {
-        log.error('Event END', e)
+        enrichedLog.error('Event END', e)
     }
 }

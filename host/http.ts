@@ -39,15 +39,15 @@ export async function executeRequest(
     const logRequest = includeBodyInLogs
         ? { method: handler.method, ...options }
         : withoutRequestBody({ method: handler.method, ...options })
-    log = log.enrichReserved({ meta: context.meta, request: logRequest })
+    let enrichedLog = log.enrichReserved({ meta: context.meta, request: logRequest })
     if (isShallow) {
-        log.trace('Shallow request')
+        enrichedLog.trace('Shallow request')
         return {
             headers: {},
             status: 204,
         }
     }
-    log.trace('Request BEGIN')
+    enrichedLog.trace('Request BEGIN')
     try {
         let parsedUrl:
             | (ParsedUrl & {
@@ -106,8 +106,8 @@ export async function executeRequest(
             headers: options.headers ?? {},
         }
 
-        const result = await measure(log, 'execution', () =>
-            handler.entry({ ...context, log }, req),
+        const result = await measure(log.enrichReserved({ meta: context.meta }), 'execution', () =>
+            handler.entry({ ...context, log: enrichedLog }, req),
         )
 
         const response = resultToResponse(result, includeBodyInLogs)
@@ -119,7 +119,7 @@ export async function executeRequest(
             }
         }
 
-        log = log.enrichReserved({
+        enrichedLog = enrichedLog.enrichReserved({
             response: {
                 status: response.status,
                 headers: response.headers,
@@ -127,20 +127,20 @@ export async function executeRequest(
             },
         })
         if (response.status < 300) {
-            log.debug('Request END')
+            enrichedLog.debug('Request END')
             await success()
         } else {
-            log.warn('Request END')
+            enrichedLog.warn('Request END')
         }
         return await compressed(req.headers, eTagged(req.headers, response))
     } catch (e) {
         try {
             const response = errorToResponse(e)
-            log = log.enrichReserved({ response })
-            log.error('Request END', e)
+            enrichedLog = enrichedLog.enrichReserved({ response })
+            enrichedLog.error('Request END', e)
             return response
         } catch (convertError) {
-            log.error('Could not convert exception to error response.', convertError)
+            enrichedLog.error('Could not convert exception to error response.', convertError)
             return {
                 headers: {},
                 status: 500,
