@@ -18,7 +18,7 @@ export async function handle(
         readonly messageId?: string
     },
     success: () => Promise<unknown>,
-): Promise<void> {
+): Promise<boolean> {
     const enrichedLog = log.enrichReserved({ meta: context.meta, event: options })
     enrichedLog.trace('Event BEGIN')
     try {
@@ -33,7 +33,9 @@ export async function handle(
         )
         enrichedLog.debug('Event END')
         await success()
+        return true
     } catch (e) {
         enrichedLog.error('Event END', e)
+        return false
     }
 }
