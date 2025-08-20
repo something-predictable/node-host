@@ -191,7 +191,7 @@ function extra(fields: object | undefined, customEnrichment: object | undefined)
 class EnrichingLogger implements Logger {
     readonly #buffer: LogBuffer
     readonly #reservedEnrichment?: object
-    readonly #customEnrichment?: object
+    readonly #customEnrichment: object
     readonly #level: number
 
     constructor(
@@ -203,14 +203,11 @@ class EnrichingLogger implements Logger {
         this.#buffer = buffer
         this.#level = level
         this.#reservedEnrichment = reservedEnrichment
-        this.#customEnrichment = customEnrichment
+        this.#customEnrichment = customEnrichment ?? {}
     }
 
-    enrich(fields: object): Logger {
-        return new EnrichingLogger(this.#buffer, this.#level, this.#reservedEnrichment, {
-            ...this.#customEnrichment,
-            ...fields,
-        })
+    enrich(fields: object): void {
+        Object.assign(this.#customEnrichment, fields)
     }
 
     flush() {

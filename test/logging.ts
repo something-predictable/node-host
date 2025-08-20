@@ -3,6 +3,19 @@ import type { LogEntry, LogTransport } from '../host/context.js'
 import { makeLogger } from '../host/logging.js'
 
 describe('logging', () => {
+    it('enriches subsequent entries', async () => {
+        const transport = new TestTransport()
+        const logger = makeLogger(transport, undefined, new AbortController().signal)
+
+        logger.enrich({ extra: 'info' })
+        logger.debug('END')
+
+        await logger.flush()
+        assert.deepStrictEqual(transport.entries.map(withoutTimestamp), [
+            { level: 'debug', message: 'END', extra: 'info' },
+        ])
+    })
+
     it('handles lists', async () => {
         const transport = new TestTransport()
         const logger = makeLogger(transport, undefined, new AbortController().signal)
@@ -109,6 +122,14 @@ describe('logging', () => {
         )
     })
 })
+
+function withoutTimestamp(entry?: { json: string }): any {
+    if (!entry) {
+        return entry
+    }
+    const { timestamp, ...rest } = JSON.parse(entry.json)
+    return rest
+}
 
 function withoutStacktrace(error: any): any {
     if (!error) {

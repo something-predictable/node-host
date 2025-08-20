@@ -6,7 +6,7 @@ export type Environment = {
 }
 
 export type Logger = {
-    enrich(fields: object): Logger
+    enrich(fields: object): void
     trace(message: string, error?: unknown, fields?: object): void
     debug(message: string, error?: unknown, fields?: object): void
     info(message: string, error?: unknown, fields?: object): void
