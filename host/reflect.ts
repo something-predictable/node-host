@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises'
-import { basename, extname, join, resolve } from 'node:path'
+import { findPackageJSON } from 'node:module'
+import { basename, dirname, extname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { HandlerConfiguration } from '../context.js'
 import type { HttpHandlerConfiguration } from '../http.js'
@@ -92,8 +93,15 @@ export async function reflect(path: string): Promise<Reflection> {
         getHash(absolutePath),
     ])
     const files = allFiles.filter(file => extname(file) === '.ts' && !file.endsWith('.d.ts'))
+    const myPackageJson =
+        packageJson.name === '@riddance/host'
+            ? join(absolutePath, 'package.json')
+            : findPackageJSON('@riddance/host', `${pathToFileURL(absolutePath).href}/`)
+    if (!myPackageJson) {
+        throw new Error('Packages not installed')
+    }
     const { getHandlers, setMeta } = (await import(
-        pathToFileURL(join(absolutePath, 'node_modules/@riddance/host/host/registry.js')).toString()
+        pathToFileURL(join(dirname(myPackageJson), 'host/registry.js')).toString()
     )) as {
         getHandlers: HandlersGetter
         setMeta: (
