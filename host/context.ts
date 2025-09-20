@@ -144,7 +144,7 @@ export function createContext(
     return {
         log: logger,
         context: ctx,
-        success: () => Promise.all(successHandlers.map(fn => fn())),
+        success: () => Promise.all(successHandlers.map(fn => fn()).filter(r => !!r)),
         flush: async () => {
             clearTimeout(timeoutHandle)
             await logger.flush()
