@@ -206,46 +206,68 @@ export type HttpHandlerConfiguration = HandlerConfiguration & {
 
 export type Handler = (context: Context, request: HttpRequest) => Promise<Result> | Result
 
-export function get(path: string, fn: Handler): void
-export function get(path: string, config: HttpHandlerConfiguration, fn: Handler): void
-export function get(
-    path: string,
+type Path<T> = T extends `/${string}` ? 'Error: path cannot start with slash.' : T
+
+export function get<T extends string>(path: Path<T>, fn: Handler): void
+export function get<T extends string>(
+    path: Path<T>,
+    config: HttpHandlerConfiguration,
+    fn: Handler,
+): void
+export function get<T extends string>(
+    path: Path<T>,
     configOrHandler: HttpHandlerConfiguration | Handler,
     fn?: Handler,
 ): void {
     registerHttpHandler('GET', path, configOrHandler, fn)
 }
-export function post(path: string, fn: Handler): void
-export function post(path: string, config: HttpHandlerConfiguration, fn: Handler): void
-export function post(
-    path: string,
+export function post<T extends string>(path: Path<T>, fn: Handler): void
+export function post<T extends string>(
+    path: Path<T>,
+    config: HttpHandlerConfiguration,
+    fn: Handler,
+): void
+export function post<T extends string>(
+    path: Path<T>,
     configOrHandler: HttpHandlerConfiguration | Handler,
     fn?: Handler,
 ): void {
     registerHttpHandler('POST', path, configOrHandler, fn)
 }
-export function put(path: string, fn: Handler): void
-export function put(path: string, config: HttpHandlerConfiguration, fn: Handler): void
-export function put(
-    path: string,
+export function put<T extends string>(path: Path<T>, fn: Handler): void
+export function put<T extends string>(
+    path: Path<T>,
+    config: HttpHandlerConfiguration,
+    fn: Handler,
+): void
+export function put<T extends string>(
+    path: Path<T>,
     configOrHandler: HttpHandlerConfiguration | Handler,
     fn?: Handler,
 ): void {
     registerHttpHandler('PUT', path, configOrHandler, fn)
 }
-export function patch(path: string, fn: Handler): void
-export function patch(path: string, config: HttpHandlerConfiguration, fn: Handler): void
-export function patch(
-    path: string,
+export function patch<T extends string>(path: Path<T>, fn: Handler): void
+export function patch<T extends string>(
+    path: Path<T>,
+    config: HttpHandlerConfiguration,
+    fn: Handler,
+): void
+export function patch<T extends string>(
+    path: Path<T>,
     configOrHandler: HttpHandlerConfiguration | Handler,
     fn?: Handler,
 ): void {
     registerHttpHandler('PATCH', path, configOrHandler, fn)
 }
-export function del(path: string, fn: Handler): void
-export function del(path: string, config: HttpHandlerConfiguration, fn: Handler): void
-export function del(
-    path: string,
+export function del<T extends string>(path: Path<T>, fn: Handler): void
+export function del<T extends string>(
+    path: Path<T>,
+    config: HttpHandlerConfiguration,
+    fn: Handler,
+): void
+export function del<T extends string>(
+    path: Path<T>,
     configOrHandler: HttpHandlerConfiguration | Handler,
     fn?: Handler,
 ): void {

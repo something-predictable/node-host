@@ -61,6 +61,9 @@ export function registerHttpHandler(
     configOrHandler: HandlerConfiguration | HttpFunction,
     fn?: HttpFunction,
 ): void {
+    if (path.startsWith('/')) {
+        throw new Error('Path cannot start with slash.')
+    }
     if (typeof configOrHandler === 'function') {
         httpHostRegistry(getMetadata(), undefined, method, path, configOrHandler)
     } else {

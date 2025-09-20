@@ -35,7 +35,7 @@ export type Reflection = {
     revision: string | undefined
     http: {
         name: string
-        method: string
+        method: 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE'
         pathPattern: string
         config: HttpHandlerConfiguration & PackageJsonConfiguration
     }[]
