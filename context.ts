@@ -7,13 +7,13 @@ export type Environment = {
 }
 
 export type Logger = {
-    enrich(fields: object): void
-    trace(message: string, error?: unknown, fields?: object): void
-    debug(message: string, error?: unknown, fields?: object): void
-    info(message: string, error?: unknown, fields?: object): void
-    warn(message: string, error?: unknown, fields?: object): void
-    error(message: string, error?: unknown, fields?: object): void
-    fatal(message: string, error?: unknown, fields?: object): void
+    enrich(fields: JsonSafeObject): void
+    trace(message: string, error?: unknown, fields?: JsonSafeObject): void
+    debug(message: string, error?: unknown, fields?: JsonSafeObject): void
+    info(message: string, error?: unknown, fields?: JsonSafeObject): void
+    warn(message: string, error?: unknown, fields?: JsonSafeObject): void
+    error(message: string, error?: unknown, fields?: JsonSafeObject): void
+    fatal(message: string, error?: unknown, fields?: JsonSafeObject): void
 }
 
 export type MutableJson =
@@ -23,13 +23,20 @@ export type MutableJson =
     | string
     | MutableJson[]
     | { [key: string]: MutableJson }
-export type Json =
+export type Json = null | boolean | number | string | readonly Json[] | JsonObject
+export type JsonObject = { readonly [key: string]: Json }
+
+export type JsonSafe =
+    | undefined
     | null
     | boolean
     | number
     | string
-    | readonly Json[]
-    | { readonly [key: string]: Json }
+    | { toJSON: () => string }
+    | readonly JsonSafe[]
+    | JsonSafeObject
+
+export type JsonSafeObject = { readonly [key: string]: JsonSafe }
 
 export type HandlerConfiguration = {
     /**
@@ -134,10 +141,10 @@ function forwardedFor(ip: string | undefined, port: number | undefined) {
 }
 
 export async function measure<T>(
-    logger: { trace: (message: string, _: undefined, f: object) => void },
+    logger: { trace: (message: string, _: undefined, f: JsonSafeObject) => void },
     name: string,
     fn: () => Promise<T> | T,
-    fields?: object,
+    fields?: JsonSafeObject,
 ) {
     const start = performance.now()
     try {

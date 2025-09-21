@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { Context, measure, type Json } from '../context.js'
+import { Context, measure, type JsonObject } from '../context.js'
 import { RootLogger } from './context.js'
 import type { EventHandler } from './event-registry.js'
 
@@ -9,11 +9,7 @@ export async function handle(
     handler: EventHandler,
     options: {
         readonly subject: string
-        readonly event:
-            | {
-                  readonly [key: string]: Json
-              }
-            | undefined
+        readonly event: JsonObject | undefined
         readonly timestamp: Date
         readonly messageId?: string
     },

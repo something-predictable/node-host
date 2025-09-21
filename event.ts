@@ -1,4 +1,4 @@
-import { Context, HandlerConfiguration, type Json } from './context.js'
+import { Context, HandlerConfiguration, type JsonObject } from './context.js'
 import { registerEventHandler } from './host/event-registry.js'
 
 export * from './context.js'
@@ -8,11 +8,7 @@ export type EventHandlerConfiguration = HandlerConfiguration & {}
 export type Handler = (
     context: Context,
     subject: string,
-    event:
-        | {
-              readonly [key: string]: Json
-          }
-        | undefined,
+    event: JsonObject | undefined,
     timestamp: Date,
     messageId: string,
 ) => Promise<void> | void

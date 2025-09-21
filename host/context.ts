@@ -1,4 +1,4 @@
-import { Context, Environment, Json, Logger } from '../context.js'
+import { Context, Environment, Json, Logger, type JsonSafeObject } from '../context.js'
 import { makeLogger } from './logging.js'
 import type { FullConfiguration, Metadata } from './meta.js'
 
@@ -15,11 +15,7 @@ export type EventTransport = {
         topic: string,
         type: string,
         subject: string,
-        data:
-            | {
-                  readonly [key: string]: Json
-              }
-            | undefined,
+        data: JsonSafeObject | undefined,
         messageId: string | undefined,
         signal: AbortSignal,
     ): Promise<void>
@@ -71,7 +67,7 @@ export function createContext(
     outerController: AbortController,
     config?: FullConfiguration,
     meta?: Metadata,
-    environment?: Environment,
+    environment?: Partial<Environment>,
     now?: () => Date,
 ): {
     log: RootLogger
@@ -102,7 +98,7 @@ export function createContext(
     globalLogger = logger
     const successHandlers: (() => Promise<void> | void)[] = []
     const ctx = {
-        env: environment ?? (process.env as Environment),
+        env: (environment ?? process.env) as Environment,
         signal: innerController.signal,
         now: now ?? (() => new Date()),
         operationId: clientInfo.operationId,
