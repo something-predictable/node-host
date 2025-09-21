@@ -31,22 +31,6 @@ export type Json =
     | readonly Json[]
     | { readonly [key: string]: Json }
 
-/*@__INLINE__*/
-export function objectSpreadable(json?: Json): { readonly [key: string]: Json } {
-    if (!json) {
-        return {}
-    }
-    return json as unknown as { readonly [key: string]: Json }
-}
-
-/*@__INLINE__*/
-export function arraySpreadable(json?: Json): readonly Json[] {
-    if (!Array.isArray(json)) {
-        return []
-    }
-    return json as readonly Json[]
-}
-
 export type HandlerConfiguration = {
     /**
      * An indication of CPU usage of the handler.
