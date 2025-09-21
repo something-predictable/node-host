@@ -1,3 +1,4 @@
+import { isIPv4 } from 'node:net'
 import { performance } from 'node:perf_hooks'
 import { highPrecisionISODate } from './host/logging.js'
 
@@ -103,25 +104,49 @@ export type Context = {
     onSuccess(fn: () => Promise<void> | void): void
 }
 
-export function httpRequestHeaders(context: Context) {
+export function httpRequestHeaders({
+    meta,
+    operationId,
+    client,
+}: Pick<Context, 'meta' | 'operationId' | 'client'>) {
     const headers: { [key: string]: string } = {
-        'user-agent': `${context.meta?.packageName ?? '?'}/${context.meta?.revision ?? '?'}`,
+        'user-agent': `${meta?.packageName ?? '?'}/${meta?.revision ?? '?'}`,
     }
-    if (context.operationId) {
-        headers['x-request-id'] = context.operationId
+    if (operationId) {
+        headers['x-request-id'] = operationId
     }
-    if (context.client) {
-        if (context.client.id) {
-            headers['x-client-id'] = context.client.id
+    if (client) {
+        if (client.id) {
+            headers['x-client-id'] = client.id
         }
-        if (!!context.client.ip || !!context.client.port) {
-            headers['x-forwarded-for'] = `${context.client.ip ?? ''}:${context.client.port ?? ''}`
+        const { ip, port } = client
+        if (!!ip || !!port) {
+            const xff = forwardedFor(ip, port)
+            if (xff) {
+                headers['x-forwarded-for'] = xff
+            }
         }
-        if (context.client.userAgent) {
-            headers['x-forwarded-for-user-agent'] = context.client.userAgent
+        if (client.userAgent) {
+            headers['x-forwarded-for-user-agent'] = client.userAgent
         }
     }
     return headers
+}
+
+function forwardedFor(ip: string | undefined, port: number | undefined) {
+    if (!port) {
+        if (ip) {
+            return ip
+        }
+        return undefined
+    }
+    if (!ip) {
+        return `:${port}`
+    }
+    if (isIPv4(ip)) {
+        return `${ip}:${port}`
+    }
+    return `[${ip}]:${port}`
 }
 
 export async function measure<T>(

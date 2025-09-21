@@ -1,4 +1,5 @@
 import { hash } from 'node:crypto'
+import { isIP } from 'node:net'
 import { brotliCompress } from 'node:zlib'
 import { Context, measure } from '../context.js'
 import type { Json, ParsedUrl, ResponseHeaders, Result } from '../http.js'
@@ -258,12 +259,11 @@ function errorToResponse(e: unknown): Response {
 }
 
 export function clientFromHeaders(
-    headers: { readonly [key: string]: string } | undefined,
+    headers: { readonly [key: string]: string | undefined } | undefined,
 ): ClientInfo {
     if (!headers) {
         return {}
     }
-    const address = headers['x-forwarded-for']?.split(':')
     return {
         operationId: headers['x-request-id'] ?? headers['request-id'],
         clientId:
@@ -271,10 +271,82 @@ export function clientFromHeaders(
             headers['x-installation-id'] ??
             headers['client-id'] ??
             headers['installation-id'],
-        clientIp: address?.[0],
-        clientPort: Number(address?.[1]) || undefined,
+        ...clientAddress(headers),
         userAgent: headers['x-forwarded-for-user-agent'] ?? headers['user-agent'],
     }
+}
+
+function clientAddress(headers: { readonly [key: string]: string | undefined }) {
+    const xff = headers['x-forwarded-for']
+    if (!xff) {
+        return undefined
+    }
+    for (const a of xff.split(',')) {
+        const valid = validClientAddress(a.trim())
+        if (valid) {
+            return valid
+        }
+    }
+    return undefined
+}
+
+function validClientAddress(s: string) {
+    const version = isIP(s)
+    if (version === 4) {
+        return { clientIp: s }
+    }
+    if (version === 6) {
+        return normalizedIp6(s)
+    }
+    if (s.startsWith('[') && s.endsWith(']')) {
+        return normalizedIp6(s.slice(1, -1))
+    }
+    if (s.startsWith(':')) {
+        const clientPort = Number(s.slice(1))
+        if (Number.isFinite(clientPort)) {
+            return { clientPort }
+        }
+        return undefined
+    }
+    const url = `ip://${s}/`
+    if (URL.canParse(url)) {
+        return addressFromUrl(new URL(url))
+    }
+    return undefined
+}
+
+function normalizedIp6(s: string) {
+    const mapped = mappedAddress(s)
+    if (mapped) {
+        return { clientIp: mapped }
+    }
+    const url = new URL(`ip://[${s}]/`)
+    return { clientIp: url.hostname.slice(1, -1) }
+}
+
+function addressFromUrl(url: URL) {
+    const clientIp =
+        url.hostname.startsWith('[') && url.hostname.endsWith(']')
+            ? url.hostname.slice(1, -1)
+            : url.hostname
+    const clientPort = url.port ? Number(url.port) : undefined
+    if (isIP(clientIp)) {
+        return {
+            clientIp,
+            clientPort,
+        }
+    }
+    return undefined
+}
+
+function mappedAddress(s: string) {
+    if (s.startsWith('::ffff:')) {
+        const ip4 = s.slice(7)
+        if (isIP(ip4) === 4) {
+            return ip4
+        }
+    }
+    return undefined
 }
 
 function eTagged(
