@@ -40,13 +40,11 @@ export type JsonSafeObject = { readonly [key: string]: JsonSafe }
 
 export type HandlerConfiguration = {
     /**
-     * An indication of CPU usage of the handler.
-     * @default 'low'
+     * An indication of CPU usage of the handler. If undefined, a generic conservative value will be used.
      */
     readonly compute?: 'high' | 'low'
     /**
-     * An indication of memory usage of the handler.
-     * @default 'low'
+     * An indication of memory usage of the handler. If undefined, a generic conservative value will be used.
      */
     readonly memory?: 'high' | 'low'
     /**
