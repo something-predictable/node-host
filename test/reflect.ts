@@ -9,7 +9,7 @@ describe('reflection', () => {
         await copyFile('host/meta.js', 'node_modules/@riddance/host/host/meta.js')
     })
 
-    it('includes cause', async () => {
+    it('includes revision', async () => {
         const { revision, ...reflection } = await reflect(process.cwd())
 
         assert.ok((revision?.length === 8 && revision.endsWith('+')) || revision?.length === 7)
