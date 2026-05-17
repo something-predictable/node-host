@@ -55,7 +55,7 @@ export type Reflection = {
 export function resolveCpu(config: PackageJsonConfiguration, supported: CPU[]): CPU {
     const resolved = resolveSupported(config.cpus, supported)
     if (!resolved) {
-        // resolve<T>(config, supported) actually asserts config is (T | `!${T}`)[], but that's not supported yet.
+        // resolveSupported<T>(config, supported) actually asserts config is (T | `!${T}`)[], but that's not supported yet.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         throw new Error('Unsupported CPUs: ' + config.cpus!.join(', '))
     }
@@ -68,17 +68,14 @@ export function resolveOS(
 ): NodeJS.Platform {
     const resolved = resolveSupported(config.os, supported)
     if (!resolved) {
-        // resolve<T>(config, supported) actually asserts config is (T | `!${T}`)[], but that's not supported yet.
+        // resolveSupported<T>(config, supported) actually asserts config is (T | `!${T}`)[], but that's not supported yet.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         throw new Error('Unsupported operating systems: ' + config.os!.join(', '))
     }
     return resolved
 }
 
-function resolveSupported<T extends string>(
-    config: (T | `!${T}`)[] | undefined,
-    supported: T[],
-): T | undefined {
+function resolveSupported<T extends string>(config: (T | `!${T}`)[] | undefined, supported: T[]) {
     if (!config) {
         return supported[0]
     }

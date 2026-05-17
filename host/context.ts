@@ -80,8 +80,9 @@ export function createContext(
             ? Math.min(config?.timeout ?? timeouts.default, timeouts.cap)
             : (config?.timeout ?? timeouts.default)) * 1000
     const innerController = new AbortController()
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const logTransport = loggers.length === 1 ? loggers[0]! : new LogMulticaster(loggers)
+
+    const logTransport =
+        (loggers.length === 1 ? loggers[0] : undefined) ?? new LogMulticaster(loggers)
     const logger = makeLogger(
         logTransport,
         config?.minimumLogLevel,

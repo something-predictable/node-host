@@ -109,7 +109,7 @@ class LogBuffer {
             clearTimeout(this.#timeout)
             this.#timeout = undefined
         }
-        return await this.#flusher
+        await this.#flusher
     }
 
     #startFlush(entries: LogEntry[]) {

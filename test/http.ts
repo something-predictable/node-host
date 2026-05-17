@@ -44,6 +44,8 @@ describe('http', () => {
                 body: { message: 'response body' },
             }
         })
+        const { etag: etag1 } = uncachedResponse.headers
+        assert.ok(etag1)
         const response = await executeHandler(
             () => {
                 return {
@@ -51,8 +53,7 @@ describe('http', () => {
                 }
             },
             {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                'if-none-match': uncachedResponse.headers.etag!,
+                'if-none-match': etag1,
             },
         )
         assert.deepStrictEqual(response, {
@@ -63,6 +64,8 @@ describe('http', () => {
             },
         })
 
+        const { etag: etag2 } = uncachedResponse.headers
+        assert.ok(etag2)
         const changedResponse = await executeHandler(
             () => {
                 return {
@@ -70,8 +73,7 @@ describe('http', () => {
                 }
             },
             {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                'if-none-match': uncachedResponse.headers.etag!,
+                'if-none-match': etag2,
             },
         )
         assert.deepStrictEqual(changedResponse, {
