@@ -37,12 +37,15 @@ export type LogTransport = {
 }
 
 class LogMulticaster implements LogTransport {
-    readonly #transports: LogTransport[]
     readonly publishRate: number
+    readonly #transports: LogTransport[]
 
     constructor(transports: LogTransport[]) {
         this.#transports = transports
-        this.publishRate = transports.map(t => t.publishRate).sort()[0] ?? Number.MAX_SAFE_INTEGER
+        this.publishRate = Math.min(
+            ...transports.map(t => t.publishRate ?? Number.MAX_SAFE_INTEGER),
+            Number.MAX_SAFE_INTEGER,
+        )
     }
 
     sendEntries(entries: LogEntry[], signal: AbortSignal) {
@@ -96,6 +99,7 @@ export function createContext(
             userAgent: clientInfo.userAgent,
         },
     })
+    // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
     globalLogger = logger
     const successHandlers: (() => Promise<void> | void)[] = []
     const ctx = {
@@ -126,7 +130,9 @@ export function createContext(
             messageId?: string,
         ) =>
             eventTransport.sendEvent(topic, type, subject, data, messageId, outerController.signal),
-        onSuccess: (fn: () => Promise<void> | void) => successHandlers.push(fn),
+        onSuccess: (fn: () => Promise<void> | void) => {
+            successHandlers.push(fn)
+        },
     }
     const timeoutHandle = setTimeout(() => {
         logger.error('Timeout.', undefined, undefined)
@@ -152,9 +158,11 @@ export function createContext(
 
 let globalLogger: Logger | undefined
 
+// eslint-disable-next-line unicorn/no-top-level-side-effects
 process.on('uncaughtException', err => {
     globalLogger?.fatal('Uncaught exception.', err, undefined)
 })
+// eslint-disable-next-line unicorn/no-top-level-side-effects
 process.on('unhandledRejection', reason => {
     globalLogger?.fatal('Unhandled rejection.', reason, undefined)
 })

@@ -52,9 +52,13 @@ export async function executeRequest(
     try {
         let parsedUrl:
             | (ParsedUrl & {
-                  /** @ignore */
+                  /**
+                  @ignore
+                  */
                   __proto__: unknown
-                  /** @ignore */
+                  /**
+                  @ignore
+                  */
                   toString: () => string
               })
             | undefined
@@ -65,6 +69,7 @@ export async function executeRequest(
                 if (parsedUrl) {
                     return parsedUrl
                 }
+                // eslint-disable-next-line unicorn/no-this-outside-of-class
                 const url = new URL(this.rawUrl)
                 parsedUrl = {
                     // eslint-disable-next-line unicorn/no-null
@@ -83,6 +88,7 @@ export async function executeRequest(
                         return url.searchParams
                     },
                     toJSON: () => url.toJSON(),
+                    // eslint-disable-next-line unicorn/prefer-url-href
                     toString: () => url.toString(),
                     username: url.username,
                     pathStepAt: (index: number) => {
@@ -92,6 +98,7 @@ export async function executeRequest(
                             throw Object.assign(
                                 new RangeError(`Path does not have a step at index ${index}.`),
                                 {
+                                    // eslint-disable-next-line unicorn/no-this-outside-of-class
                                     rawUrl: this.rawUrl,
                                     pathName: url.pathname,
                                     steps: steps.slice(1),
@@ -156,7 +163,8 @@ function resultToResponse(result: Result, withLogBody: boolean): Response & { lo
             headers: {},
             status: 204,
         }
-    } else if (typeof result === 'string') {
+    }
+    if (typeof result === 'string') {
         const logBody = withLogBody ? result : undefined
         return {
             headers: {
@@ -166,37 +174,37 @@ function resultToResponse(result: Result, withLogBody: boolean): Response & { lo
             body: result,
             logBody,
         }
-    } else {
-        if (result.body === undefined) {
-            return {
-                headers: result.headers ?? {},
-                status: result.status ?? 200,
-            }
-        } else if (typeof result.body === 'string') {
-            const logBody = withLogBody ? result.body : undefined
-            return {
-                headers: withContentType(result.headers, 'text/plain'),
-                status: result.status ?? 200,
-                body: result.body,
-                logBody,
-            }
-        } else if (Buffer.isBuffer(result.body)) {
-            const logBody = withLogBody ? result.body.toString('base64') : undefined
-            return {
-                headers: withContentType(result.headers, 'application/octet-stream'),
-                status: result.status ?? 200,
-                body: result.body,
-                logBody,
-            }
-        } else {
-            const logBody = withLogBody ? result.body : undefined
-            return {
-                headers: withContentType(result.headers, 'application/json'),
-                status: result.status ?? 200,
-                body: JSON.stringify(result.body),
-                logBody,
-            }
+    }
+    if (result.body === undefined) {
+        return {
+            headers: result.headers ?? {},
+            status: result.status ?? 200,
         }
+    }
+    if (typeof result.body === 'string') {
+        const logBody = withLogBody ? result.body : undefined
+        return {
+            headers: withContentType(result.headers, 'text/plain'),
+            status: result.status ?? 200,
+            body: result.body,
+            logBody,
+        }
+    }
+    if (Buffer.isBuffer(result.body)) {
+        const logBody = withLogBody ? result.body.toString('base64') : undefined
+        return {
+            headers: withContentType(result.headers, 'application/octet-stream'),
+            status: result.status ?? 200,
+            body: result.body,
+            logBody,
+        }
+    }
+    const logBody = withLogBody ? result.body : undefined
+    return {
+        headers: withContentType(result.headers, 'application/json'),
+        status: result.status ?? 200,
+        body: JSON.stringify(result.body),
+        logBody,
     }
 }
 
@@ -242,7 +250,8 @@ function errorToResponse(e: unknown): Response {
             status: status ?? 500,
             body,
         }
-    } else if (typeof body === 'object') {
+    }
+    if (typeof body === 'object') {
         return {
             headers: {
                 'content-type': 'application/json',
@@ -250,11 +259,10 @@ function errorToResponse(e: unknown): Response {
             status: status ?? 500,
             body: JSON.stringify(body),
         }
-    } else {
-        return {
-            headers: {},
-            status: status ?? 500,
-        }
+    }
+    return {
+        headers: {},
+        status: status ?? 500,
     }
 }
 

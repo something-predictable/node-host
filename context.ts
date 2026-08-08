@@ -17,49 +17,44 @@ export type Logger = {
 }
 
 export type MutableJson =
-    | null
-    | boolean
-    | number
-    | string
-    | MutableJson[]
-    | { [key: string]: MutableJson }
+    null | boolean | number | string | MutableJson[] | { [key: string]: MutableJson }
 export type Json = null | boolean | number | string | readonly Json[] | JsonObject
 export type JsonObject = { readonly [key: string]: Json }
 
 export type JsonSafe =
-    | undefined
-    | null
     | boolean
     | number
     | string
-    | { toJSON: () => string }
     | readonly JsonSafe[]
     | JsonSafeObject
+    | { toJSON: () => string }
+    | undefined
+    | null
 
 export type JsonSafeObject = { readonly [key: string]: JsonSafe }
 
 export type HandlerConfiguration = {
     /**
-     * An indication of CPU usage of the handler. If undefined, a generic conservative value will be used.
-     */
+    An indication of CPU usage of the handler. If undefined, a generic conservative value will be used.
+    */
     readonly compute?: 'high' | 'low'
     /**
-     * An indication of memory usage of the handler. If undefined, a generic conservative value will be used.
-     */
+    An indication of memory usage of the handler. If undefined, a generic conservative value will be used.
+    */
     readonly memory?: 'high' | 'low'
     /**
-     * A boolean indicating whether to enrich the log with the body of events, requests or responses. Set to false if the body is large or contain very sensitive data.
-     * @default false
-     */
+    A boolean indicating whether to enrich the log with the body of events, requests or responses. Set to false if the body is large or contain very sensitive data.
+    @default false
+    */
     readonly excludeBodyFromLogs?: boolean
     /**
-     * The level below which log entries will be discarded.
-     * @default 'trace'
-     */
+    The level below which log entries will be discarded.
+    @default 'trace'
+    */
     readonly minimumLogLevel?: 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'fatal'
     /**
-     * The number of seconds the function is expected to finish executing in.
-     */
+    The number of seconds the function is expected to finish executing in.
+    */
     readonly timeout?: number
 }
 

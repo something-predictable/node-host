@@ -114,6 +114,7 @@ class LogBuffer {
 
     #startFlush(entries: LogEntry[]) {
         if (this.#flusher) {
+            // eslint-disable-next-line unicorn/prefer-await
             this.#flusher = this.#flusher.then(() =>
                 this.#transport.sendEntries(entries, this.#signal),
             )
@@ -316,7 +317,7 @@ function errorAsJson(error: unknown, depth: number): Json | undefined {
     if (depth > 5) {
         return undefined
     }
-    if (error instanceof Error) {
+    if (Error.isError(error)) {
         return {
             message: error.message,
             name: error.name,
@@ -348,7 +349,7 @@ function safeErrorAsJson(error: unknown, depth: number): Json | undefined {
     if (depth > 5) {
         return undefined
     }
-    if (error instanceof Error) {
+    if (Error.isError(error)) {
         return {
             message: error.message,
             name: error.name,

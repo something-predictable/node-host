@@ -1,6 +1,6 @@
 {
   "name": "@riddance/host",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -18,6 +18,12 @@
     "*.d.ts",
     "host/*.js",
     "host/*.d.ts"
+  ],
+  "sideEffects": [
+    "./host/context.js",
+    "./host/http-registry.js",
+    "./host/event-registry.js",
+    "./host/timer-registry.js"
   ],
   "exports": {
     "./lib/context": "./context.js",
@@ -42,6 +48,9 @@
     "postpublish": "riddance-sync"
   },
   "devDependencies": {
-    "@riddance/env": "0.10.0"
+    "@riddance/env": "0.10.2"
+  },
+  "allowScripts": {
+    "@riddance/env": true
   }
 }

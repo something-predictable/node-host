@@ -13,7 +13,8 @@ export function combineConfig(
 ): FullConfiguration | undefined {
     if (base === undefined) {
         return override
-    } else if (override === undefined) {
+    }
+    if (override === undefined) {
         return base
     }
     return { ...base, ...override }
@@ -27,6 +28,7 @@ export function setMeta(
     revision: string | undefined,
     config: PackageConfiguration | undefined,
 ) {
+    // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
     metadata = {
         packageName,
         fileName,

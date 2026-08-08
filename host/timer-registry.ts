@@ -19,6 +19,7 @@ type TimerHost = (
 let timerHostRegistry: TimerHost
 
 function setTimerHost(host: TimerHost) {
+    // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
     timerHostRegistry = host
 }
 
@@ -45,6 +46,7 @@ function timerHost(
     })
 }
 
+// eslint-disable-next-line unicorn/no-top-level-side-effects
 setTimerHost(timerHost)
 
 export function registerTimerHandler(

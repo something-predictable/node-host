@@ -21,6 +21,7 @@ type HttpHost = (
 let httpHostRegistry: HttpHost
 
 function setHttpHost(host: HttpHost) {
+    // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
     httpHostRegistry = host
 }
 
@@ -51,6 +52,7 @@ function httpHost(
     })
 }
 
+// eslint-disable-next-line unicorn/no-top-level-side-effects
 setHttpHost(httpHost)
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'

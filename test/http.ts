@@ -92,7 +92,7 @@ describe('http', () => {
             () => {
                 return {
                     body: {
-                        message: Array.from({ length: 100_000 }).map(_ => 'hello'),
+                        message: Array.from({ length: 100_000 }, _ => 'hello'),
                     },
                 }
             },
@@ -101,7 +101,7 @@ describe('http', () => {
             },
         )
         assert.deepStrictEqual(response.headers['content-encoding'], 'br')
-        assert.ok((response.body?.length ?? Number.NaN) < 10_000)
+        assert.ok((response.body?.length ?? NaN) < 10_000)
     })
 
     describe('parses forwarded header', () => {

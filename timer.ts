@@ -9,10 +9,10 @@ export type Timer = {
 
 export type TimerHandlerConfiguration = HandlerConfiguration & {
     /**
-     * The TZ identifier identifying which time zone to the schedule is in, UTC if undefined.
-     * @default undefined
-     * @example 'America/Los_Angeles'
-     */
+    The TZ identifier identifying which time zone to the schedule is in, UTC if undefined.
+    @default undefined
+    @example 'America/Los_Angeles'
+    */
     readonly timezone?: string
 }
 

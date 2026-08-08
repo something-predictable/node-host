@@ -103,7 +103,9 @@ describe('logging', () => {
         extra.extra = extra
         error.extra = extra
         logger.error('With cyclic properties', error)
+        // eslint-disable-next-line unicorn/no-error-property-assignment
         error.cause = error
+        assert.strictEqual(error.cause, error)
         logger.error('With cyclic cause', error)
 
         await logger.flush()

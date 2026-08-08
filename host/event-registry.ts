@@ -21,6 +21,7 @@ type EventHost = (
 let eventHostRegistry: EventHost
 
 function setEventHost(host: EventHost) {
+    // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
     eventHostRegistry = host
 }
 
@@ -40,6 +41,7 @@ function eventHost(
     })
 }
 
+// eslint-disable-next-line unicorn/no-top-level-side-effects
 setEventHost(eventHost)
 
 export function registerEventHandler(
